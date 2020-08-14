@@ -19,6 +19,8 @@ from marshmallow.utils import (
     missing as missing_,
     resolve_field_instance,
     is_aware,
+    _get_value_for_key,
+    _get_value_for_keys,
 )
 from marshmallow.exceptions import (
     ValidationError,
@@ -303,6 +305,50 @@ class Field(FieldABC):
         if value is None:
             if hasattr(self, "allow_none") and self.allow_none is not True:
                 raise self.make_error("null")
+
+    def get_serializer(
+        self,
+        attr: str,
+        accessor: typing.Optional[
+            typing.Callable[[typing.Any, str, typing.Any], typing.Any]
+        ] = None,
+        **kwargs
+    ) -> typing.Callable[[typing.Any], typing.Any]:
+        """Return an optimized serializer for this Field object.
+
+        :param str attr: The attribute or key on the object to be serialized.
+        :param dict kwargs: Field-specific keyword arguments.
+        :return: Serializer function.
+        """
+        if not self._CHECK_ATTRIBUTE:
+            return lambda obj: self._serialize(None, attr, obj, **kwargs)
+
+        attribute = getattr(self, "attribute", None)
+        check_key = attr if attribute is None else attribute
+        default = None
+        callable_default = False
+        has_default = hasattr(self, "default")
+        if has_default:
+            default = self.default
+            callable_default = callable(default)
+        if accessor:
+            accessor_func = accessor
+        else:
+            if not isinstance(check_key, int) and "." in check_key:
+                accessor_func = _get_value_for_keys
+                check_key = check_key.split(".")
+            else:
+                accessor_func = _get_value_for_key
+
+        def _serializer(obj):
+            value = accessor_func(obj, check_key, missing_)
+            if value is missing_ and has_default:
+                value = default() if callable_default else default
+            if value is missing_:
+                return value
+            return self._serialize(value, attr, obj, **kwargs)
+
+        return _serializer
 
     def serialize(
         self,
