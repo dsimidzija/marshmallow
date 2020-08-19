@@ -397,7 +397,9 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self.load_fields = {}  # type: typing.Dict[str, ma_fields.Field]
         self.dump_fields = {}  # type: typing.Dict[str, ma_fields.Field]
-        self.dump_serializers = {}  # type: typing.Dict[str, typing.Callable]
+        self.dump_serializers = (
+            self.dict_class()
+        )  # type: typing.Dict[str, typing.Callable]
         self._init_fields()
         messages = {}
         messages.update(self._default_error_messages)
@@ -1043,7 +1045,7 @@ class Schema(base.SchemaABC, metaclass=SchemaMeta):
         self.fields = fields_dict
         self.dump_fields = dump_fields
         self.load_fields = load_fields
-        self.dump_serializers = {}
+        self.dump_serializers = self.dict_class()
 
     def on_bind_field(self, field_name: str, field_obj: ma_fields.Field) -> None:
         """Hook to modify a field when it is bound to the `Schema`.
