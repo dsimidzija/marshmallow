@@ -129,10 +129,10 @@ class SchemaMeta(type):
     @classmethod
     def get_declared_fields(
         mcs,
-        klass: type,
+        klass: typing.Type[type],
         cls_fields: typing.List,
         inherited_fields: typing.List,
-        dict_cls: type,
+        dict_cls: typing.Type[type],
     ):
         """Returns a dictionary of field_name => `Field` pairs declared on the class.
         This is exposed mainly so that plugins can add additional fields, e.g. fields

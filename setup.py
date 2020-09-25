@@ -1,6 +1,14 @@
 import re
 from setuptools import setup, find_packages
 
+try:
+    from setuptools_cythonize import get_cmdclass
+except ImportError:
+
+    def get_cmdclass():
+        return {}
+
+
 EXTRAS_REQUIRE = {
     "tests": ["pytest", "pytz", "simplejson"],
     "lint": [
@@ -59,6 +67,7 @@ setup(
     package_data={"marshmallow": ["py.typed"]},
     include_package_data=True,
     extras_require=EXTRAS_REQUIRE,
+    cmdclass=get_cmdclass(),
     license="MIT",
     zip_safe=False,
     keywords=[
